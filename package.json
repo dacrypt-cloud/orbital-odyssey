@@ -1,0 +1,25 @@
+{
+  "name": "orbital-odyssey",
+  "version": "1.0.0",
+  "description": "Orbital Odyssey: Gravity Well — A mobile-friendly physics-based 2D space navigation and orbital slingshot game built with HTML5 Canvas, ES6 JavaScript, and Web Audio API.",
+  "main": "index.html",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "start": "node scripts/server.js",
+    "dev": "node scripts/server.js",
+    "test": "node tests/physics.test.js && node tests/e2e.test.js",
+    "test:unit": "node tests/physics.test.js",
+    "test:e2e": "node tests/e2e.test.js"
+  },
+  "keywords": [
+    "space-game",
+    "physics",
+    "orbital-mechanics",
+    "gravity",
+    "html5-canvas",
+    "mobile-game",
+    "javascript"
+  ],
+  "author": "Autonomous SWE Agent",
+  "license": "MIT"
+}

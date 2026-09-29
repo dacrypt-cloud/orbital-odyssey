@@ -1,0 +1,830 @@
+/* ==========================================================================
+   Orbital Odyssey: Gravity Well
+   Responsive Tactical Sci-Fi Cockpit Interface & Mobile Touch HUD
+   ========================================================================== */
+
+:root {
+  --bg-deep: #030712;
+  --panel-bg: rgba(9, 16, 34, 0.82);
+  --panel-border: rgba(56, 189, 248, 0.32);
+  --cyan: #38bdf8;
+  --cyan-bright: #67e8f9;
+  --emerald: #34d399;
+  --amber: #facc15;
+  --rose: #fb7185;
+  --violet: #a855f7;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-deep);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  touch-action: none;
+}
+
+#app-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+#game-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ==========================================================================
+   START SCREEN & MODALS
+   ========================================================================== */
+
+.screen-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: radial-gradient(circle at center, rgba(7, 16, 34, 0.58) 0%, rgba(3, 7, 18, 0.88) 100%);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  overflow-y: auto;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 660px;
+  max-height: 94dvh;
+  overflow-y: auto;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 18px;
+  padding: clamp(18px, 3.5vw, 30px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.75), 0 0 32px rgba(56, 189, 248, 0.14);
+  text-align: center;
+}
+
+.brand-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--cyan-bright);
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+
+.game-title {
+  font-size: clamp(26px, 5vw, 42px);
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  background: linear-gradient(135deg, #ffffff 0%, #67e8f9 55%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 6px;
+}
+
+.game-subtitle {
+  color: var(--text-muted);
+  font-size: clamp(13px, 2.2vw, 15px);
+  max-width: 480px;
+  margin: 0 auto 18px;
+  line-height: 1.45;
+}
+
+.menu-stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.stat-pill {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 10px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.stat-pill .label {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.stat-pill .val {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--amber);
+  font-size: 15px;
+}
+
+.primary-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.btn {
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 13px 24px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  transition: transform 0.12s ease, box-shadow 0.15s ease, background 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+  color: #ffffff;
+  border-color: rgba(125, 211, 252, 0.5);
+  box-shadow: 0 6px 22px rgba(14, 165, 233, 0.4);
+  font-size: 15px;
+  padding: 14px 30px;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #38bdf8 0%, #3b82f6 100%);
+  box-shadow: 0 8px 28px rgba(56, 189, 248, 0.55);
+}
+
+.btn-secondary {
+  background: rgba(30, 41, 59, 0.85);
+  color: var(--text-main);
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+.btn-secondary:hover {
+  border-color: var(--cyan);
+  background: rgba(30, 41, 59, 1);
+}
+
+/* Sector Selection Grid */
+.sector-section-title {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.sector-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.sector-card {
+  cursor: pointer;
+  background: rgba(15, 23, 42, 0.78);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  border-radius: 10px;
+  padding: 9px 10px;
+  text-align: left;
+  color: var(--text-main);
+  transition: all 0.15s ease;
+}
+
+.sector-card:hover {
+  border-color: var(--cyan);
+  transform: translateY(-2px);
+  background: rgba(14, 165, 233, 0.15);
+}
+
+.sector-card.selected {
+  border-color: var(--cyan-bright);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+}
+
+.sector-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.sector-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--cyan);
+  font-weight: 700;
+}
+
+.sector-stars {
+  font-size: 11px;
+  color: var(--amber);
+}
+
+.sector-title {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.controls-summary-bar {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--text-muted);
+  padding-top: 10px;
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.controls-summary-bar kbd {
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 5px;
+  padding: 2px 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--cyan-bright);
+}
+
+/* ==========================================================================
+   TOP TACTICAL COCKPIT HUD
+   ========================================================================== */
+
+#hud-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.hud-top-bar {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+  pointer-events: none;
+}
+
+.hud-cluster {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(9, 16, 34, 0.78);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  border-radius: 12px;
+  padding: 7px 12px;
+  backdrop-filter: blur(4px);
+  pointer-events: auto;
+}
+
+.hud-metric {
+  display: flex;
+  flex-direction: column;
+  padding: 0 6px;
+}
+
+.hud-metric-label {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+.hud-metric-value {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.hud-metric-value.accent-cyan {
+  color: var(--cyan-bright);
+}
+
+.hud-metric-value.accent-emerald {
+  color: var(--emerald);
+}
+
+.hud-metric-value.accent-amber {
+  color: var(--amber);
+}
+
+.hud-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(148, 163, 184, 0.2);
+}
+
+/* Health & Boost Capacitor Meters */
+.meter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 96px;
+}
+
+.meter-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.meter-track {
+  width: 100%;
+  height: 7px;
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.meter-fill {
+  height: 100%;
+  width: 100%;
+  transition: width 0.15s ease, background-color 0.2s ease;
+}
+
+.meter-fill.healthy {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.meter-fill.warning {
+  background: linear-gradient(90deg, #f59e0b, #facc15);
+}
+
+.meter-fill.critical {
+  background: linear-gradient(90deg, #e11d48, #fb7185);
+}
+
+.meter-fill.fuel {
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+}
+
+.portal-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(30, 41, 59, 0.85);
+  color: var(--text-muted);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.portal-badge.unlocked {
+  background: rgba(6, 182, 212, 0.22);
+  color: var(--cyan-bright);
+  border-color: var(--cyan);
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.35);
+}
+
+.combo-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(250, 204, 21, 0.18);
+  color: var(--amber);
+  border: 1px solid rgba(250, 204, 21, 0.45);
+  opacity: 0;
+  transform: scale(0.85);
+  transition: all 0.18s ease;
+}
+
+.combo-badge.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.hud-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-icon-btn {
+  cursor: pointer;
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: var(--text-main);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+
+.hud-icon-btn:hover {
+  border-color: var(--cyan);
+  background: rgba(14, 165, 233, 0.22);
+}
+
+/* Sector Announcement Banner */
+.sector-banner {
+  position: absolute;
+  top: 76px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-12px);
+  background: rgba(9, 16, 34, 0.86);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 12px;
+  padding: 10px 22px;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  max-width: 90vw;
+}
+
+.sector-banner.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+#banner-title {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--cyan-bright);
+  letter-spacing: 1.5px;
+  margin-bottom: 2px;
+}
+
+#banner-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   MOBILE / ANDROID TOUCH CONTROLS
+   ========================================================================== */
+
+#touch-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 14px clamp(14px, 3vw, 28px) clamp(16px, env(safe-area-inset-bottom, 18px));
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  pointer-events: none;
+  z-index: 15;
+}
+
+#touch-controls.hidden-touch {
+  display: none !important;
+}
+
+.touch-left-cluster,
+.touch-right-cluster {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+/* Virtual Analog Thumbstick */
+#joystick-base {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.14) 0%, rgba(9, 16, 34, 0.68) 100%);
+  border: 2px solid rgba(56, 189, 248, 0.38);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  touch-action: none;
+}
+
+#joystick-base.active {
+  border-color: var(--cyan-bright);
+  box-shadow: 0 0 22px rgba(56, 189, 248, 0.4);
+}
+
+#joystick-knob {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle at 35% 35%, #67e8f9, #0284c7);
+  border: 2px solid #e0f2fe;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.dpad-row {
+  display: flex;
+  gap: 10px;
+}
+
+.touch-btn {
+  cursor: pointer;
+  touch-action: none;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.82);
+  border: 2px solid rgba(56, 189, 248, 0.42);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+  transition: transform 0.08s ease, background 0.1s ease;
+}
+
+.touch-btn.rotate-btn {
+  width: 62px;
+  height: 50px;
+  font-size: 18px;
+}
+
+.touch-action-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.touch-btn.brake-btn {
+  width: 66px;
+  height: 66px;
+  border-color: rgba(251, 146, 60, 0.55);
+  color: #fdba74;
+}
+
+.touch-btn.boost-btn {
+  width: 72px;
+  height: 72px;
+  border-color: rgba(250, 204, 21, 0.65);
+  color: var(--amber);
+}
+
+.touch-btn.thrust-btn {
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.35) 0%, rgba(15, 23, 42, 0.88) 100%);
+  border-color: var(--cyan-bright);
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.touch-btn.active {
+  transform: scale(0.92);
+  background: rgba(56, 189, 248, 0.38);
+  border-color: #ffffff;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.65);
+}
+
+/* ==========================================================================
+   BREAKDOWN TABLES & STAR RATINGS (LEVEL COMPLETE / GAME OVER / PAUSE)
+   ========================================================================== */
+
+.stars-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 12px 0 18px;
+}
+
+.star-badge {
+  font-size: 38px;
+  line-height: 1;
+}
+
+.star-badge.earned {
+  color: var(--amber);
+  text-shadow: 0 0 18px rgba(250, 204, 21, 0.65);
+}
+
+.star-badge.empty {
+  color: rgba(148, 163, 184, 0.25);
+}
+
+.breakdown-box {
+  background: rgba(15, 23, 42, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin: 14px 0 20px;
+  text-align: left;
+}
+
+.breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.breakdown-row:last-child {
+  border-bottom: none;
+  padding-top: 10px;
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--cyan-bright);
+}
+
+.pause-menu-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 320px;
+  margin: 18px auto 0;
+}
+
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS (MOBILE PORTRAIT & LANDSCAPE)
+   ========================================================================== */
+
+@media (max-width: 720px) {
+  .hide-mobile {
+    display: none !important;
+  }
+
+  .sector-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hud-top-bar {
+    top: 6px;
+    left: 6px;
+    right: 6px;
+    gap: 5px;
+    flex-direction: column;
+  }
+
+  .hud-cluster {
+    width: 100%;
+    justify-content: space-between;
+    padding: 5px 8px;
+    gap: 4px;
+  }
+
+  .hud-metric {
+    padding: 0 2px;
+  }
+
+  .hud-metric-label {
+    font-size: 8px;
+  }
+
+  .hud-metric-value {
+    font-size: 11px;
+  }
+
+  .portal-badge {
+    font-size: 9px;
+    padding: 3px 6px;
+  }
+
+  .combo-badge {
+    display: none;
+  }
+
+  .meter-group {
+    min-width: 58px;
+    flex: 1;
+    max-width: 82px;
+  }
+
+  .hud-actions-group {
+    gap: 4px;
+  }
+
+  .hud-icon-btn {
+    padding: 4px 7px;
+    font-size: 11px;
+  }
+
+  .sector-banner {
+    top: 104px;
+    padding: 7px 14px;
+    width: 92vw;
+  }
+
+  #banner-title {
+    font-size: 11px;
+  }
+
+  #banner-subtitle {
+    font-size: 10px;
+  }
+
+  #joystick-base {
+    width: 92px;
+    height: 92px;
+  }
+
+  #joystick-knob {
+    width: 38px;
+    height: 38px;
+  }
+
+  .touch-btn.rotate-btn {
+    width: 50px;
+    height: 40px;
+    font-size: 15px;
+  }
+
+  .touch-btn.brake-btn {
+    width: 56px;
+    height: 56px;
+    font-size: 10px;
+  }
+
+  .touch-btn.boost-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 10px;
+  }
+
+  .touch-btn.thrust-btn {
+    width: 72px;
+    height: 72px;
+    font-size: 11px;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .modal-card {
+    padding: 14px 20px;
+  }
+
+  .game-title {
+    font-size: 24px;
+  }
+
+  .sector-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

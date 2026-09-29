@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#030712" />
+  <title>Orbital Odyssey: Gravity Well — Physics Space Game</title>
+  <link rel="stylesheet" href="styles/main.css" />
+</head>
+<body>
+  <div id="app-container">
+    <!-- Primary HTML5 Physics & Space Canvas -->
+    <canvas id="game-canvas" aria-label="Orbital Odyssey Space Physics Canvas"></canvas>
+
+    <!-- ====================================================================
+         1. START / MAIN MENU SCREEN
+         ==================================================================== -->
+    <section id="start-screen" class="screen-overlay" aria-label="Start Screen">
+      <div class="modal-card">
+        <span class="brand-tag">NEWTONIAN ORBITAL NAVIGATION</span>
+        <h1 class="game-title">ORBITAL ODYSSEY</h1>
+        <p class="game-subtitle">
+          Pilot your scout craft through planetary gravity wells, execute high-G slingshots, collect Quantum Energy Orbs, and reach the Wormhole Exit Gate.
+        </p>
+
+        <div class="menu-stats-row">
+          <div class="stat-pill">
+            <span class="label">High Score</span>
+            <span id="menu-highscore" class="val">0</span>
+          </div>
+          <div class="stat-pill">
+            <span class="label">Campaign</span>
+            <span class="val">8 Sectors + Endless</span>
+          </div>
+        </div>
+
+        <div class="primary-actions">
+          <button id="btn-play" type="button" class="btn btn-primary">
+            ▶ LAUNCH MISSION
+          </button>
+          <button id="btn-continue-sector" type="button" class="btn btn-secondary">
+            SECTOR 01
+          </button>
+          <button id="btn-how-to-play" type="button" class="btn btn-secondary">
+            ❖ FLIGHT MANUAL
+          </button>
+        </div>
+
+        <div class="sector-section-title">Select Mission Sector</div>
+        <div id="sector-select-grid" class="sector-grid"></div>
+
+        <div class="controls-summary-bar">
+          <span><kbd>W</kbd>/<kbd>↑</kbd> Thrust</span>
+          <span><kbd>A</kbd><kbd>D</kbd>/<kbd>←</kbd><kbd>→</kbd> Rotate</span>
+          <span><kbd>S</kbd>/<kbd>↓</kbd> Retro-Brake</span>
+          <span><kbd>Space</kbd> Boost</span>
+          <span><kbd>P</kbd> Pause</span>
+          <span>◈ Touch Thumbstick &amp; Thruster Pad Ready</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         HOW TO PLAY / FLIGHT MANUAL MODAL
+         ==================================================================== -->
+    <section id="howto-modal" class="screen-overlay hidden" aria-label="Flight Manual">
+      <div class="modal-card">
+        <span class="brand-tag">TACTICAL BRIEFING</span>
+        <h2 class="game-title" style="font-size: 28px;">FLIGHT MANUAL</h2>
+        <div class="breakdown-box">
+          <div class="breakdown-row">
+            <span><strong>1. Collect Energy Orbs</strong></span>
+            <span>Collect required cyan/green orbs to unlock the Wormhole Gate.</span>
+          </div>
+          <div class="breakdown-row">
+            <span><strong>2. Harness Gravity Wells</strong></span>
+            <span>Planets pull your ship with inverse-square gravity. Curve around them for +250 Slingshot Bonuses!</span>
+          </div>
+          <div class="breakdown-row">
+            <span><strong>3. Watch Trajectory Computer</strong></span>
+            <span>Dotted cyan arc predicts your orbital path. Red X warns of planetary impact!</span>
+          </div>
+          <div class="breakdown-row">
+            <span><strong>4. Avoid Space Hazards</strong></span>
+            <span>Dodge drifting asteroids, magnetic proximity mines, and sweeping pulsar lasers.</span>
+          </div>
+          <div class="breakdown-row">
+            <span><strong>5. Android &amp; Desktop Controls</strong></span>
+            <span>Use Virtual Thumbstick / Rotate buttons + Thrust/Boost/Brake on mobile, or WASD/Arrows + Space on desktop.</span>
+          </div>
+        </div>
+        <button id="btn-close-howto" type="button" class="btn btn-primary">
+          GOT IT — BACK TO BRIDGE
+        </button>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         2. IN-GAME TACTICAL COCKPIT HUD OVERLAY
+         ==================================================================== -->
+    <div id="hud-overlay" class="hidden">
+      <header class="hud-top-bar">
+        <!-- Left Cluster: Sector, Score, Combo & Energy Orbs -->
+        <div class="hud-cluster hud-cluster-main">
+          <div class="hud-metric">
+            <span class="hud-metric-label">SECTOR <span id="hud-level">01</span></span>
+            <span id="hud-level-name" class="hud-metric-value accent-cyan">Maiden Orbit</span>
+          </div>
+          <div class="hud-divider"></div>
+          <div class="hud-metric">
+            <span class="hud-metric-label">SCORE</span>
+            <span id="hud-score" class="hud-metric-value accent-amber">0</span>
+          </div>
+          <div class="hud-divider"></div>
+          <div class="hud-metric">
+            <span class="hud-metric-label">ORBS</span>
+            <span id="hud-energy" class="hud-metric-value accent-emerald">0 / 4</span>
+          </div>
+          <span id="hud-portal-badge" class="portal-badge">
+            <span id="hud-portal-status">NEED 4 MORE</span>
+          </span>
+          <span id="hud-combo" class="combo-badge">1x COMBO</span>
+        </div>
+
+        <!-- Right Cluster: Hull Integrity, Boost Capacitor, Lives, Telemetry & Quick Actions -->
+        <div class="hud-cluster hud-cluster-systems">
+          <div class="meter-group">
+            <div class="meter-header">
+              <span>HULL</span>
+              <span id="hud-health-text">100%</span>
+            </div>
+            <div class="meter-track">
+              <div id="hud-health-bar" class="meter-fill healthy"></div>
+            </div>
+          </div>
+
+          <div class="meter-group">
+            <div class="meter-header">
+              <span>BOOST</span>
+              <span id="hud-speed">0 m/s</span>
+            </div>
+            <div class="meter-track">
+              <div id="hud-fuel-bar" class="meter-fill fuel"></div>
+            </div>
+          </div>
+
+          <div class="hud-divider hide-mobile"></div>
+
+          <div class="hud-metric">
+            <span class="hud-metric-label">SHIPS</span>
+            <span id="hud-lives" class="hud-metric-value accent-cyan">▲▲▲</span>
+          </div>
+
+          <div class="hud-metric hide-mobile">
+            <span class="hud-metric-label">PULL</span>
+            <span id="hud-gravity" class="hud-metric-value">0.0 G</span>
+          </div>
+
+          <div class="hud-actions-group">
+            <button id="btn-hud-zoom" type="button" class="hud-icon-btn" title="Toggle Camera Zoom (Z)">
+              ⊕
+            </button>
+            <button id="btn-hud-trajectory" type="button" class="hud-icon-btn" title="Toggle Trajectory Line (T)">
+              ☄
+            </button>
+            <button id="btn-hud-mute" type="button" class="hud-icon-btn" title="Mute/Unmute Audio (M)">
+              ♪
+            </button>
+            <button id="btn-hud-restart" type="button" class="hud-icon-btn" title="Restart Sector (R)">
+              ↻
+            </button>
+            <button id="btn-pause" type="button" class="hud-icon-btn pause-btn" title="Pause Game (P)">
+              ❚❚ PAUSE
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Sector Announcement Banner -->
+      <div id="sector-banner" class="sector-banner">
+        <div id="banner-title">SECTOR 01: MAIDEN ORBIT</div>
+        <div id="banner-subtitle">Collect Quantum Energy Orbs to open the Wormhole Gate</div>
+      </div>
+
+      <!-- Bottom Mobile / Android Touch Controls -->
+      <div id="touch-controls">
+        <!-- Left Side: Virtual Analog Thumbstick + Rotate L/R Buttons -->
+        <div class="touch-left-cluster">
+          <div id="joystick-base" aria-label="Virtual Steering Thumbstick">
+            <div id="joystick-knob"></div>
+          </div>
+          <div class="dpad-row">
+            <button id="btn-touch-left" type="button" class="touch-btn rotate-btn" aria-label="Rotate Left">
+              ⟲
+            </button>
+            <button id="btn-touch-right" type="button" class="touch-btn rotate-btn" aria-label="Rotate Right">
+              ⟳
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Side: Retro-Brake, Afterburner Boost, and Main Thruster -->
+        <div class="touch-right-cluster">
+          <div class="touch-action-row">
+            <button id="btn-touch-brake" type="button" class="touch-btn brake-btn" aria-label="Retro Brake">
+              <span>▼</span>
+              <span>BRAKE</span>
+            </button>
+            <button id="btn-touch-boost" type="button" class="touch-btn boost-btn" aria-label="Afterburner Boost">
+              <span>⚡</span>
+              <span>BOOST</span>
+            </button>
+            <button id="btn-touch-thrust" type="button" class="touch-btn thrust-btn" aria-label="Main Thruster">
+              <span>▲</span>
+              <span>THRUST</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         3. PAUSE OVERLAY SCREEN
+         ==================================================================== -->
+    <section id="pause-screen" class="screen-overlay hidden" aria-label="Pause Menu">
+      <div class="modal-card" style="max-width: 440px;">
+        <span class="brand-tag">SYSTEMS STANDBY</span>
+        <h2 class="game-title" style="font-size: 30px;">MISSION PAUSED</h2>
+        <div class="pause-menu-stack">
+          <button id="btn-resume" type="button" class="btn btn-primary">
+            ▶ RESUME FLIGHT
+          </button>
+          <button id="btn-pause-restart" type="button" class="btn btn-secondary">
+            ↻ RESTART SECTOR
+          </button>
+          <button id="btn-pause-mute" type="button" class="btn btn-secondary">
+            ♪ Audio: ON
+          </button>
+          <button id="btn-pause-trajectory" type="button" class="btn btn-secondary">
+            Trajectory Arc: ON
+          </button>
+          <button id="btn-pause-touch" type="button" class="btn btn-secondary">
+            Touch HUD: AUTO
+          </button>
+          <button id="btn-pause-menu" type="button" class="btn btn-secondary">
+            ⌂ MAIN MENU
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         4. LEVEL COMPLETE SCREEN
+         ==================================================================== -->
+    <section id="level-complete-screen" class="screen-overlay hidden" aria-label="Level Complete">
+      <div class="modal-card" style="max-width: 500px;">
+        <span class="brand-tag">WORMHOLE TRANSIT SUCCESSFUL</span>
+        <h2 class="game-title" style="font-size: 30px;">SECTOR COMPLETE!</h2>
+        <p id="complete-sector-name" class="game-subtitle" style="margin-bottom: 8px;">
+          Sector 01: Maiden Orbit
+        </p>
+
+        <div id="complete-stars" class="stars-row">
+          <span class="star-badge earned">★</span>
+          <span class="star-badge earned">★</span>
+          <span class="star-badge earned">★</span>
+        </div>
+
+        <div class="breakdown-box">
+          <div class="breakdown-row">
+            <span>Quantum Energy Collected</span>
+            <span id="complete-orbs">4 / 6</span>
+          </div>
+          <div class="breakdown-row">
+            <span>Hull Integrity Bonus</span>
+            <span id="complete-hull-bonus">+500</span>
+          </div>
+          <div class="breakdown-row">
+            <span>Speed &amp; Par Time Bonus</span>
+            <span id="complete-time-bonus">+240</span>
+          </div>
+          <div class="breakdown-row">
+            <span>100% Collection Bonus</span>
+            <span id="complete-perfect-bonus">+500</span>
+          </div>
+          <div class="breakdown-row">
+            <span>Total Mission Score</span>
+            <span id="complete-total-score">1840</span>
+          </div>
+        </div>
+
+        <div class="primary-actions">
+          <button id="btn-next-level" type="button" class="btn btn-primary">
+            NEXT SECTOR ➔
+          </button>
+          <button id="btn-replay-level" type="button" class="btn btn-secondary">
+            ↻ REPLAY
+          </button>
+          <button id="btn-complete-menu" type="button" class="btn btn-secondary">
+            MENU
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         5. GAME OVER SCREEN
+         ==================================================================== -->
+    <section id="game-over-screen" class="screen-overlay hidden" aria-label="Game Over">
+      <div class="modal-card" style="max-width: 480px;">
+        <span class="brand-tag" style="color: #fb7185; border-color: rgba(251, 113, 133, 0.4);">
+          SIGNAL LOST • ALL RESERVE SHIPS DEPLETED
+        </span>
+        <h2 class="game-title" style="font-size: 32px;">MISSION FAILED</h2>
+        <p id="gameover-cause" class="game-subtitle" style="color: #fda4af; margin-bottom: 12px;">
+          Hull Breach from Planetary Impact
+        </p>
+
+        <div class="breakdown-box">
+          <div class="breakdown-row">
+            <span>Sector Reached</span>
+            <span id="gameover-sector">Sector 01: Maiden Orbit</span>
+          </div>
+          <div class="breakdown-row">
+            <span>Energy Orbs Secured</span>
+            <span id="gameover-orbs">0 / 6</span>
+          </div>
+          <div class="breakdown-row">
+            <span>High Score Record</span>
+            <span id="gameover-highscore">0</span>
+          </div>
+          <div class="breakdown-row">
+            <span>Final Mission Score</span>
+            <span id="gameover-score">0</span>
+          </div>
+        </div>
+
+        <div class="primary-actions">
+          <button id="btn-retry" type="button" class="btn btn-primary">
+            ↻ RETRY SECTOR
+          </button>
+          <button id="btn-gameover-menu" type="button" class="btn btn-secondary">
+            ⌂ MAIN MENU
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="src/audio.js"></script>
+  <script src="src/physics.js"></script>
+  <script src="src/levels.js"></script>
+  <script src="src/entities.js"></script>
+  <script src="src/renderer.js"></script>
+  <script src="src/controls.js"></script>
+  <script src="src/game.js"></script>
+</body>
+</html>
